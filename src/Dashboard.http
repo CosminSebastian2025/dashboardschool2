@@ -1,0 +1,94 @@
+// FILE: c:\Users\cosmi\WebstormProjects\dashboardschool2\src\Dashboard.http
+// Raccolta di richieste HTTP generate automaticamente dalle chiamate `fetch` trovate nel progetto.
+// Ogni richiesta segue il formato utilizzato dall'HTTP client (IntelliJ/REST Client / REST Client extension).
+// Nota: le richieste relative (es. /api/grades) sono state trasformate in URL assoluti verso
+// http://localhost:3000 — assicurati che il server di sviluppo (`npm run dev`) sia in esecuzione
+// prima di eseguire queste richieste.
+
+// --- Inizio spiegazione riga-per-riga ---
+// ### GET request to example server
+//  - `###` è il separatore usato dall'HTTP client (IntelliJ/REST Client) per delimitare più richieste nello stesso file.
+//  - "GET request to example server" è un titolo/descrizione leggibile per l'utente (non influisce sulla richiesta).
+// GET https://examples.http-client.intellij.net/get
+//  - Linea della richiesta: specifica il metodo HTTP (GET) e l'URL di base verso cui viene inviata la richiesta.
+//     ?generated-in=WebStorm
+//  - Questa riga è un parametro di query (query string) continuato: `generated-in=WebStorm` viene aggiunto all'URL.
+//  - L'indentazione è solo per leggibilità/supporto del formato; la libreria lo concatena correttamente.
+//
+// ###
+//  - Triplo cancelletto finale separa o termina il blocco della richiesta.
+// --- Fine spiegazione riga-per-riga ---
+
+// --- Richiesta originale (rimane identica e pronta per l'esecuzione da parte dell'HTTP client) ---
+### GET request to example server
+GET https://examples.http-client.intellij.net/get
+    ?generated-in=WebStorm
+
+###
+
+// --- Risposta ottenuta eseguendo la richiesta (catturata durante l'esecuzione) ---
+// Stato HTTP osservato: 200 (OK)
+// Intestazioni principali ricevute (esempio):
+// date: Fri, 17 Oct 2025 20:32:24 GMT
+// content-type: application/json
+// content-length: 354
+// connection: keep-alive
+// vary: Accept-Encoding
+// access-control-allow-origin: https://examples.http-client.intellij.net
+// access-control-allow-credentials: true
+// strict-transport-security: max-age=31536000; includeSubDomains
+// Corpo (JSON) ricevuto:
+// {
+//   "args": { "generated-in": "WebStorm" },
+//   "headers": {
+//     "Host": "examples.http-client.intellij.net",
+//     "X-Forwarded-Host": "examples.http-client.intellij.net",
+//     "X-Forwarded-Scheme": "https",
+//     "X-Scheme": "https"
+//   },
+//   "origin": "151.34.62.11",
+//   "url": "https://examples.http-client.intellij.net/get?generated-in=WebStorm"
+// }
+// Nota: l'IP di origine e gli header possono variare a seconda della rete/ambiente al momento della chiamata.
+
+
+// --- Elenco delle richieste trovate nelle chiamate `fetch` del progetto ---
+// Nota: per le richieste che accettano parametri dinamici (es. `subject`) ho inserito un valore
+// di esempio (Matematica). Sostituisci il valore se vuoi testarne altri.
+
+### GET - voti per materia (azione = voti)
+GET http://localhost:3000/api/grades?subject=Matematica&action=voti
+
+###
+
+### GET - voti trimestre (azione = trimestre)
+GET http://localhost:3000/api/grades?action=trimestre
+
+###
+
+### GET - voti trimestrePentamestre (azione = trimestrePentamestre)
+GET http://localhost:3000/api/grades?action=trimestrePentamestre
+
+###
+
+### GET - voti pentamestre (azione = pentamestre)
+GET http://localhost:3000/api/grades?action=pentamestre
+
+###
+
+### POST - crea nuovo voto
+POST http://localhost:3000/api/grades
+Content-Type: application/json
+
+{
+  "subject": "Matematica",
+  "voto": 7.5,
+  "note": "Esempio di nota",
+  "data": "2025-10-17",
+  "periodo": "trimestre"
+}
+
+###
+
+// Fine raccolta — tutte le chiamate `fetch` trovate nel repository sono state inserite sopra
+// come richieste eseguibili verso `http://localhost:3000` usando valori di esempio dove necessario.

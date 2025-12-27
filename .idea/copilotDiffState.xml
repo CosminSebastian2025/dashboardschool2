@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/.env.local.example">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/.env.local.example" />
+              <option name="originalContent" value="# Esempio file .env.local per connessione a PostgreSQL&#10;# Copia questo file in .env.local e sostituisci i valori con quelli del tuo DB&#10;&#10;# Stringa di connessione in formato:&#10;# postgres://USER:PASSWORD@HOST:PORT/DATABASE&#10;DATABASE_URL=postgres://mio_utente:mia_password@localhost:5432/mio_database&#10;&#10;# Se lavori in locale lascia NODE_ENV=development per disabilitare SSL&#10;NODE_ENV=development&#10;&#10;# In produzione potrebbe essere necessario abilitare SSL:&#10;# NODE_ENV=production&#10;# (lib/db.ts abilita ssl quando NODE_ENV === 'production')&#10;" />
+              <option name="updatedContent" value="# Esempio file .env.local per connessione a PostgreSQL&#10;# Copia questo file in .env.local e sostituisci i valori con quelli del tuo DB&#10;&#10;# Stringa di connessione in formato:&#10;# postgres://USER:PASSWORD@HOST:PORT/DATABASE&#10;DATABASE_URL=postgres://mio_utente:mia_password@localhost:5432/mio_database&#10;&#10;# Se lavori in locale lascia NODE_ENV=development per disabilitare SSL&#10;NODE_ENV=development&#10;&#10;# In produzione potrebbe essere necessario abilitare SSL:&#10;# NODE_ENV=production&#10;# (lib/db.ts abilita ssl quando NODE_ENV === 'production')&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
