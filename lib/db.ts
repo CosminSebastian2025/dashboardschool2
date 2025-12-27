@@ -1,95 +1,132 @@
-import path from "path";
-import Database from "better-sqlite3";
+// lib/db.ts
+import {supabase} from './supabase'
 
-// Percorso assoluto al file SQLite (scripts/nuovodb.db)
-const dbPath = path.join(process.cwd(), "scripts", "nuovodb");
+// Inserisci un nuovo voto
+export async function insertGrade(
+    idUtente: string,
+    subject: string,
+    voto: number,
+    note: string | null,
+    data: string, // formato YYYY-MM-DD
+    periodo: string
+) {
+    const {error} = await supabase
+        .from('Voti')
+        .insert({
+            idUtente,
+            subject,
+            voto,
+            note,
+            data,
+            periodo,
+        })
 
-// Inizializza DB
-const db = new Database(dbPath);
-
-/*db.prepare(`
-    CREATE TABLE IF NOT EXISTS Utenti
-    (
-        id_utente TEXT PRIMARY KEY
-    )`
-).run();
-
-db.prepare(`
-    CREATE TABLE IF NOT EXISTS Voti
-    (
-        idVoto   INTEGER PRIMARY KEY AUTOINCREMENT,
-        idUtente TEXT,
-        subject  TEXT NOT NULL,
-        voto     REAL NOT NULL,
-        data     TEXT NOT NULL,
-        periodo  TEXT NOT NULL,
-        note     TEXT,
-
-        FOREIGN KEY (idUtente) REFERENCES Utenti (id_utente)
-    )
-`).run();*/
-
-export function insertGrade(idUtente: string, subject: string, voto: number, note: string, data: string, periodo: string) {
-    const stmt = db.prepare(`
-        INSERT INTO Voti (idUtente, subject, voto, note, data, periodo)
-        VALUES (?, ?, ?, ?, ?, ?);
-    `);
-
-    return stmt.run(idUtente, subject, voto, note, data, periodo);
-}
-
-export function getAllGrades(subject?: string, idUtente?: string) {
-    if (subject) {
-        return db.prepare("SELECT * FROM Voti WHERE subject = ? AND Voti.idUtente = ? ORDER BY data DESC, periodo DESC").all(subject, idUtente);
+    if (error) {
+        console.error('Errore durante insertGrade:', error)
+        throw error
     }
-    return db.prepare("SELECT * FROM Voti ORDER BY data DESC, periodo DESC").all();
 }
 
-export function getGradesByPeriod(period: string, idUtente?: string) {
-    return db.prepare("SELECT * FROM Voti WHERE periodo = ? AND Voti.idUtente = ?").all(period, idUtente);
+// Registra l'utente se non esiste già (chiamala all'accesso con Clerk)
+export async function registerUser(idUtente: string) {
+    const {data, error} = await supabase
+        .from('Utenti')
+        .select('id_utente')
+        .eq('id_utente', idUtente)
+        .maybeSingle()
 
-    //return db.prepare("SELECT * FROM Voti").all();
+    if (error && error.code !== 'PGRST116') {
+        console.error('Errore registerUser:', error)
+        throw error
+    }
 
+    if (!data) {
+        const {error: insertError} = await supabase
+            .from('Utenti')
+            .insert({id_utente: idUtente})
+
+        if (insertError) {
+            console.error('Errore inserimento utente:', insertError)
+            throw insertError
+        }
+    }
 }
 
-export function getGradesByPeriodTwo(idUtente?: string) {
-    return db.prepare("SELECT * FROM Voti WHERE Voti.idUtente= ?").all(idUtente);
+// Tutti i voti (filtrabili per materia)
+export async function getAllGrades(subject?: string, idUtente?: string) {
+    let query = supabase.from('Voti').select('*').order('data', {ascending: false}).order('periodo', {ascending: false})
 
-    //return db.prepare("SELECT * FROM Voti").all();
+    if (idUtente) query = query.eq('idUtente', idUtente)
+    if (subject) query = query.eq('subject', subject)
+
+    const {data, error} = await query
+
+    if (error) {
+        console.error('Errore getAllGrades:', error)
+        throw error
+    }
+    return data || []
 }
 
-export function userExists(idUtente: string) {
-    const stmt = db.prepare("SELECT * FROM Utenti WHERE id_utente = ?");
-    const result = stmt.all(idUtente);
+// Voti di un periodo specifico (trimestre, pentamestre, ecc.)
+export async function getGradesByPeriod(period: string, idUtente: string) {
+    const {data, error} = await supabase
+        .from('Voti')
+        .select('*')
+        .eq('periodo', period)
+        .eq('idUtente', idUtente)
+        .order('data', {ascending: false})
 
-    // Se per qualche motivo result è undefined, restituisci false
-    return result.length > 0;
+    if (error) throw error
+    return data || []
 }
 
-export function registerUser(idUtente: string) {
-    db.prepare("INSERT INTO Utenti (id_utente) VALUES (?)").run(idUtente);
+// Tutti i voti dell'utente (per grafici e medie)
+export async function getGradesByPeriodTwo(idUtente: string) {
+    const {data, error} = await supabase
+        .from('Voti')
+        .select('*')
+        .eq('idUtente', idUtente)
+        .order('data', {ascending: true})
+
+    if (error) throw error
+    return data || []
 }
 
-export function postGradesAll(idUtente?: string, subject?: string) {
-    const stmt = db.prepare(
-        "SELECT * FROM Voti WHERE Voti.idUtente = ? AND subject = ? ORDER BY data ASC"
-    ).all(idUtente, subject);
+// Voti per materia specifica (per grafico andamento)
+export async function postGradesAll(idUtente: string, subject: string) {
+    const {data, error} = await supabase
+        .from('Voti')
+        .select('subject, voto, data, periodo, note')
+        .eq('idUtente', idUtente)
+        .eq('subject', subject)
+        .order('data', {ascending: true})
 
-    return stmt;
+    if (error) throw error
+    return data || []
 }
 
-export function postGradesByPeriod(period: string, idUtente?: string) {
-    const stmt = db.prepare(
-        "SELECT subject, voto, data, note FROM Voti WHERE idUtente = ? AND periodo = ? ORDER BY data ASC"
-    ).all(idUtente, period);
+// Voti di un periodo (usato per medie trimestre/pentamestre)
+export async function postGradesByPeriod(period: string, idUtente: string) {
+    const {data, error} = await supabase
+        .from('Voti')
+        .select('subject, voto, data, note')
+        .eq('idUtente', idUtente)
+        .eq('periodo', period)
+        .order('data', {ascending: true})
 
-    return stmt;
+    if (error) throw error
+    return data || []
 }
 
-export function postGradesAllTwo(idUtente?: string) {
-    const stmt = db.prepare(
-        "SELECT subject, voto, data, periodo, note FROM Voti WHERE Voti.idUtente = ? AND (periodo = 'trimestre' AND periodo= 'pentamestre') ORDER BY data ASC"
-    ).all(idUtente);
+// Tutti i voti dell'utente (media annuale, ecc.) – corregge il bug logico della query originale
+export async function postGradesAllTwo(idUtente: string) {
+    const {data, error} = await supabase
+        .from('Voti')
+        .select('subject, voto, data, periodo, note')
+        .eq('idUtente', idUtente)
+        .order('data', {ascending: true})
 
-    return stmt;
+    if (error) throw error
+    return data || []
 }

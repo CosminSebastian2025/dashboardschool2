@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS Voti
+(
+    idVoto   INTEGER PRIMARY KEY AUTOINCREMENT,
+    idUtente TEXT,
+    subject  TEXT NOT NULL,
+    voto     NUMERIC(4,2) NOT NULL,
+    data     DATE NOT NULL,
+    periodo  TEXT NOT NULL,
+    note     TEXT,
+
+    FOREIGN KEY (idUtente) REFERENCES Utenti (id_utente)
+);
+
+CREATE TABLE IF NOT EXISTS Utenti
+(
+    id_utente TEXT PRIMARY KEY
+);
