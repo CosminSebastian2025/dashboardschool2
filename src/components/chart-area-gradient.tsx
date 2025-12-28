@@ -32,11 +32,6 @@ export function Trimestre() {
         const fetchData = async () => {
             setLoading(true);
             try {
-                // GET /api/grades?action=trimestre
-                // - Metodo: GET verso l'endpoint relativo `/api/grades` con query string `action=trimestre`.
-                // - Scopo: chiedere al backend i voti del periodo "trimestre".
-                // - Nota: URL relativo => richiesta verso lo stesso origin dell'app (es. http://localhost:3000 se in dev).
-                // - Non eseguita qui: per provarla avvia il server Next.js (`npm run dev`) e poi usa curl o apri l'app.
                 const response = await fetch(`/api/grades?action=trimestre&id_utente=${userId}`);
 
                 if (!response.ok) {
