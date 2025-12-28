@@ -1,3 +1,4 @@
+// src/app/api/grades/route.ts  (o dove si trova)
 import {NextResponse} from "next/server";
 import {
     getAllGrades,
@@ -6,92 +7,64 @@ import {
     insertGrade,
     postGradesAll,
     postGradesAllTwo,
-    postGradesByPeriod,
     registerUser,
-    userExists
-} from "../../../../lib/db";
-
+} from "../../../../lib/db"; // <-- assicurati che punti al nuovo db.ts con Supabase
 
 export async function GET(request: Request) {
     try {
         const {searchParams} = new URL(request.url);
-        const idUtente = searchParams.get("id_utente"); // ID utente fisso per ora, da sostituire con autenticazione
+        const idUtente = searchParams.get("id_utente");
         const action = searchParams.get("action");
         const subject = searchParams.get("subject") || undefined;
 
-        // 🔹 Se l’utente non esiste nel DB, lo registriamo
         if (!idUtente) {
             return NextResponse.json({error: "id_utente mancante"}, {status: 400});
         }
 
-        const alreadyExists = userExists(idUtente);
+        // Registra l'utente se non esiste (ora è async!)
+        await registerUser(idUtente);
 
-        console.log("elemento trovati:" + alreadyExists);
-        if (!alreadyExists) {
-            registerUser(idUtente);
+        if (action === "voti" && idUtente) {
+            const rows = await getAllGrades(subject, idUtente);
+            return NextResponse.json({grades: rows});
+        } else if (action === "trimestre" && idUtente) {
+            const rows = await getGradesByPeriod("trimestre", idUtente);
+            return NextResponse.json({grades: rows});
+        } else if (action === "trimestrePentamestre" && idUtente) {
+            const rows = await getGradesByPeriodTwo(idUtente);
+            return NextResponse.json({grades: rows});
+        } else if (action === "pentamestre" && idUtente) {
+            const rows = await getGradesByPeriod("pentamestre", idUtente);
+            return NextResponse.json({grades: rows});
+        } else if (action === "fetchGrades" && idUtente && subject) {
+            const grades = await postGradesAll(idUtente, subject);
+            return NextResponse.json({grades});
+        } else if (action === "allGrades" && idUtente) {
+            const grades = await postGradesAllTwo(idUtente);
+            return NextResponse.json({grades});
         }
 
-        if (action === 'voti' && idUtente) {
-            const {searchParams} = new URL(request.url);
-            const subject = searchParams.get("subject") || undefined;
-
-            const rows = getAllGrades(subject, idUtente);
-            return NextResponse.json({grades: rows});
-        } else if (action === 'trimestre' && idUtente) {
-            const rows = getGradesByPeriod("trimestre", idUtente);
-            return NextResponse.json({grades: rows});
-        } else if (action === 'trimestrePentamestre' && idUtente) {
-            const rows = getGradesByPeriodTwo(idUtente);
-            return NextResponse.json({grades: rows});
-        } else if (action === 'pentamestre' && idUtente) {
-            const rows = getGradesByPeriod("pentamestre", idUtente);
-            return NextResponse.json({grades: rows});
-        } else if (action === 'fetchGrades' && idUtente) {
-            const postGrades = postGradesAll(idUtente, subject);
-            return NextResponse.json({grades: postGrades});
-        } else if (action === 'allGrades' && idUtente) {
-            const postAllGrades = postGradesAllTwo(idUtente);
-            return NextResponse.json({grades: postAllGrades});
-        } else {
-            console.log('No action specified');
-            return NextResponse.json({message: "No action specified"}, {status: 400});
-        }
-
-
+        return NextResponse.json({message: "No valid action specified"}, {status: 400});
     } catch (error: any) {
         console.error("DB GET error:", error);
         return NextResponse.json({error: error.message}, {status: 500});
     }
-
 }
 
 export async function POST(request: Request) {
     try {
-        const {searchParams} = new URL(request.url);
-        const action = searchParams.get("action");
-        const id_Utente = searchParams.get("id_utente"); // ID utente fisso per ora, da sostituire con autenticazione
+        const body = await request.json();
+        const {idUtente, subject, voto, note, data, periodo} = body;
 
-
-        const {idUtente, subject, voto, note, data, periodo} = await request.json();
-
-        if (!subject || !voto || !data || !periodo) {
+        if (!idUtente || !subject || !voto || !data || !periodo) {
             return NextResponse.json({error: "Campi obbligatori mancanti"}, {status: 400});
         }
 
-        console.log("esiste " + userExists(idUtente));
-        if (userExists(idUtente))
-            insertGrade(idUtente, subject, voto, note, data, periodo);
-        else
-            registerUser(idUtente);
+        // Registra l'utente (se è la prima volta)
+        await registerUser(idUtente);
 
-
-        if (action === 'pentamestre' && id_Utente) {
-            const rows = postGradesByPeriod("pentamestre", idUtente);
-            return NextResponse.json({grades: rows});
-        } else if (action === 'trimestre' && id_Utente) {
-            const rows = postGradesByPeriod("trimestre", idUtente);
-            return NextResponse.json({grades: rows});
-        }
+        // Inserisci il voto
+        await insertGrade(idUtente, subject, voto, note || null, data, periodo);
 
         return NextResponse.json({success: true});
     } catch (error: any) {
@@ -99,4 +72,3 @@ export async function POST(request: Request) {
         return NextResponse.json({error: error.message}, {status: 500});
     }
 }
-
