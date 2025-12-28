@@ -38,7 +38,6 @@ export function Trimestre() {
                     console.error("Errore API:", response.status);
                     return;
                 }
-
                 // Parse JSON: il backend dovrebbe rispondere con un array o oggetto contenente i voti.
                 const result = await response.json();
                 const grades = Array.isArray(result) ? result : result.grades || [];
@@ -53,8 +52,6 @@ export function Trimestre() {
                 } else {
                     setAverage(null);
                 }
-
-
             } catch (e) {
                 console.error("Errore fetch voti:", e);
                 setAverage(null);
